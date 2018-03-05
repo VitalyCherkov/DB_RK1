@@ -81,7 +81,7 @@ ORDER BY delta;
 --
 SELECT
 AVG(CASE WHEN R.year > 1980 THEN R.stars ELSE NULL END) -
-AVG(CASE WHEN R.year <= 1980 THEN R.stars ELSE NULL END) AS delta
+AVG(CASE WHEN R.year < 1980 THEN R.stars ELSE NULL END) AS delta
 FROM (
     SELECT M.year AS year, AVG(R.stars) as stars
     FROM movie M
@@ -192,3 +192,20 @@ FROM (
 JOIN reviewer ON reviewer.rid = res.rid
 ORDER BY name;
 
+--
+-- 15
+-- Некоторые режиссеры сняли более чем один фильм. 
+-- Для всех таких режиссеров, выбрать названия всех фильмов режиссера, его имя. 
+-- Сортировка по имени режиссера.
+--
+SELECT director, title
+FROM movie F
+WHERE (
+    F.director IN (
+        SELECT M.director
+        FROM movie M
+        GROUP BY M.director
+        HAVING COUNT(*) > 1
+    )
+)
+ORDER BY director;
