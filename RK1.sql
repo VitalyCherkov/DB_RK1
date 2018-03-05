@@ -209,3 +209,21 @@ WHERE (
     )
 )
 ORDER BY director;
+
+-- 
+-- 16 
+-- Для всех случаев когда один эксперт оценивал фильм более одного раза и указал 
+-- лучший рейтинг второй раз, выведите имя эксперта и название фильма, отсортировав 
+-- по имени, затем по названию фильма.
+--
+
+SELECT R.name AS name, M.title as title 
+FROM (
+    SELECT F.rid, F.mid
+    FROM rating F
+    INNER JOIN rating S ON F.mid = S.mid AND F.rid = S.rid
+    WHERE F.ratingdate < S.ratingdate AND F.stars < S.stars
+) pairs
+JOIN movie M ON M.mid = pairs.mid
+JOIN reviewer R on R.rid = pairs.rid
+ORDER BY name, title; 
