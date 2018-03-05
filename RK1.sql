@@ -177,3 +177,18 @@ JOIN (
 ON M.mid = RES.movieId
 ORDER BY stars, title;
 
+--
+-- 14
+-- Найти имена всех экспертов, которые поставили три или более оценок, 
+-- сортировка по алфавиту.
+--
+SELECT name
+FROM (
+    SELECT R.rid
+    FROM rating R
+    GROUP BY R.rid
+    HAVING COUNT(*) >= 3
+) AS res
+JOIN reviewer ON reviewer.rid = res.rid
+ORDER BY name;
+
