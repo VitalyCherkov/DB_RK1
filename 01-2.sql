@@ -1,3 +1,9 @@
+\c Vitaly
+DROP DATABASE IF EXISTS unilabs;
+CREATE DATABASE unilabs;
+\c unilabs
+
+
 -- Cleanup
 DROP TABLE IF EXISTS rating;
 DROP TABLE IF EXISTS reviewer;
