@@ -21,7 +21,7 @@ CREATE VIEW filmsStarsView AS
     ON M.mid = RES.movieId
     ORDER BY stars, title;
 
--- A) Узнать рейтинг фильма
+-- B) Узнать рейтинг фильма
 CREATE OR REPLACE FUNCTION get_rating_of_film(filmName TEXT) 
     RETURNS SETOF filmsStarsView
     LANGUAGE SQL
@@ -31,7 +31,7 @@ $$;
 
 SELECT * FROM get_rating_of_film('E.T.');
 
--- Б) Фильмы с рейтингом в диапазоне от, до
+-- C) Фильмы с рейтингом в диапазоне от, до
 CREATE OR REPLACE FUNCTION get_films_by_rating(NUMERIC, NUMERIC)
     RETURNS SETOF filmsStarsView
     LANGUAGE SQL
@@ -40,3 +40,5 @@ AS $$
 $$;
 
 SELECT * FROM get_films_by_rating(2.5, 3.0);
+
+-- D) 
