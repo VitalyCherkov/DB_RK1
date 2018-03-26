@@ -41,4 +41,4 @@ $$;
 
 SELECT * FROM get_films_by_rating(2.5, 3.0);
 
--- D) 
+-- D) Поиск оценок фильма по 
