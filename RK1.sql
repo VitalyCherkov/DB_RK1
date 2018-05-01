@@ -18,9 +18,15 @@
 
 ------------------------------------------------------------------------------------
 
+CREATE FUNCTION getcursor(refcursor) RETURNS refcursor
+AS '
+BEGIN 
+    OPEN $1 FOR SELECT * FROM rating;
+    RETURN $1;
+END;
+' LANGUAGE plpgsql;
 
-BEGIN WORK;
-
+BEGIN;
     -- Сохраним первоначальное состояние таблицы RATING
     SAVEPOINT initial_state;
 
@@ -51,22 +57,20 @@ BEGIN WORK;
     ROLLBACK TO SAVEPOINT second_state;
 
 ----------------------------------------------------------------------
-    DECLARE rating_cursor3 CURSOR FOR SELECT * FROM rating;
-    FETCH ALL FROM rating_cursor3;
-    CLOSE rating_cursor3;
+
+    SELECT getcursor('rating_cursor3');
+    FETCH ALL IN rating_cursor3;
 
     ROLLBACK TO first_state;
 
 ----------------------------------------------------------------------
-    DECLARE rating_cursor4 CURSOR FOR SELECT * FROM rating;
-    FETCH ALL FROM rating_cursor4;
-    CLOSE rating_cursor4;
+    SELECT getcursor('rating_cursor4');    
+    FETCH ALL IN rating_cursor4;
 
     ROLLBACK TO initial_state;
 
-----------------------------------------------------------------------
-    DECLARE rating_cursor5 CURSOR FOR SELECT * FROM rating;
-    FETCH ALL FROM rating_cursor5;
-    CLOSE rating_cursor5;
+-- ----------------------------------------------------------------------    
+    SELECT getcursor('rating_cursor5');    
+    FETCH ALL IN rating_cursor5;
 
  COMMIT;
