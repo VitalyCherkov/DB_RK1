@@ -1,51 +1,72 @@
 \c dblabs
 
 ------------------------------------------------------------------------------------
--- LAB5
+-- LAB6
+------------------------------------------------------------------------------------
+
+-- ПРОТОТИП ЗАДАНИЯ
+-- 1. Сохранить первоначальное состояние таблицы Orders
+-- 2. Сохранить состояние таблицы Orders без заказов, находящихся в
+-- статусе F
+-- 3. Сохранить состояние таблицы Orders без заказов, находящихся в
+-- статусе F и номера которых меньше 10
+-- 4. Произвести возврат в состояние таблицы Orders без находящихся
+-- в статусе F и номера которых меньше 10, отменить последнее
+-- удаление. Вывести содержимое таблицы.
+-- 5. Произвести возврат в исходное состояние таблицы Orders,
+-- сохранить его
+
 ------------------------------------------------------------------------------------
 
 
--- Хранимая процедура для поиска фильма по id рецензента
+BEGIN WORK;
 
-CREATE OR REPLACE FUNCTION get_films_by_reviewer_id(reviewer_id integer)
-RETURNS TABLE (id integer, Title text, FilmYear integer, Name text, Stars integer) 
-LANGUAGE SQL
-AS $$
+    -- Сохраним первоначальное состояние таблицы RATING
+    SAVEPOINT initial_state;
 
-    SELECT 
-        M.mid, 
-        M.title,
-        M.year, 
-        RE.name, 
-        R.stars 
-    FROM (
-        SELECT * FROM reviewer
-        WHERE reviewer.rid = reviewer_id
-    ) AS RE
-    JOIN rating R ON RE.rid = R.rid
-    JOIN movie M ON M.mid = R.mid;
-    
-$$;
+----------------------------------------------------------------------
+    DECLARE rating_cursor0 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor0;
+    CLOSE rating_cursor0;
 
-SELECT * FROM get_films_by_reviewer_id(201);
+    DELETE FROM
+    rating WHERE ratingdate IS NULL;
+    SAVEPOINT first_state;
 
--- Поиск фильма по средней оценке между минимальной и максимальной
+----------------------------------------------------------------------
+    DECLARE rating_cursor1 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor1;
+    CLOSE rating_cursor1;
 
-CREATE OR REPLACE FUNCTION get_films_by_avg_stars_between(minimal integer, maximal integer)
-RETURNS TABLE (id integer, Title text, Rating numeric)
-LANGUAGE SQL
-AS $$
+    DELETE FROM
+    rating WHERE stars <= 3;
+    SAVEPOINT second_state;
 
-    SELECT * FROM (
-        SELECT
-            M.mid,
-            M.title,
-            AVG(R.stars) AS stars
-        FROM movie M
-        JOIN rating R ON M.mid = R.mid
-        GROUP BY M.mid
-    ) AS RES
-        WHERE RES.stars >= minimal AND RES.stars <= maximal;
+----------------------------------------------------------------------
+    DECLARE rating_cursor2 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor2;
+    CLOSE rating_cursor2;
 
-$$;
-SELECT * FROM get_films_by_avg_stars_between(4, 5)
+    DELETE FROM rating;
+    ROLLBACK TO SAVEPOINT second_state;
+
+----------------------------------------------------------------------
+    DECLARE rating_cursor3 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor3;
+    CLOSE rating_cursor3;
+
+    ROLLBACK TO first_state;
+
+----------------------------------------------------------------------
+    DECLARE rating_cursor4 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor4;
+    CLOSE rating_cursor4;
+
+    ROLLBACK TO initial_state;
+
+----------------------------------------------------------------------
+    DECLARE rating_cursor5 CURSOR FOR SELECT * FROM rating;
+    FETCH ALL FROM rating_cursor5;
+    CLOSE rating_cursor5;
+
+ COMMIT;
