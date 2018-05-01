@@ -1,46 +1,51 @@
-\c unilabs
+\c dblabs
 
 ------------------------------------------------------------------------------------
 -- LAB5
 ------------------------------------------------------------------------------------
 
---
--- Выбрать список названий фильмов и средний рейтинг, от самого низкого до самого 
--- высокого. Если два или более фильмов имеют одинаковый средний балл, перечислить их в
--- алфавитном порядке.
---
-DROP VIEW IF EXISTS filmsStarsView;
-CREATE VIEW filmsStarsView AS
-    SELECT M.title AS title, RES.stars AS stars
-    FROM movie M
-    JOIN (
-        SELECT R.mid AS movieId, AVG(R.stars) AS stars
-        FROM rating R
-        GROUP BY R.mid
+
+-- Хранимая процедура для поиска фильма по id рецензента
+
+CREATE OR REPLACE FUNCTION get_films_by_reviewer_id(reviewer_id integer)
+RETURNS TABLE (id integer, Title text, FilmYear integer, Name text, Stars integer) 
+LANGUAGE SQL
+AS $$
+
+    SELECT 
+        M.mid, 
+        M.title,
+        M.year, 
+        RE.name, 
+        R.stars 
+    FROM (
+        SELECT * FROM reviewer
+        WHERE reviewer.rid = reviewer_id
+    ) AS RE
+    JOIN rating R ON RE.rid = R.rid
+    JOIN movie M ON M.mid = R.mid;
+    
+$$;
+
+SELECT * FROM get_films_by_reviewer_id(201);
+
+-- Поиск фильма по средней оценке между минимальной и максимальной
+
+CREATE OR REPLACE FUNCTION get_films_by_avg_stars_between(minimal integer, maximal integer)
+RETURNS TABLE (id integer, Title text, Rating numeric)
+LANGUAGE SQL
+AS $$
+
+    SELECT * FROM (
+        SELECT
+            M.mid,
+            M.title,
+            AVG(R.stars) AS stars
+        FROM movie M
+        JOIN rating R ON M.mid = R.mid
+        GROUP BY M.mid
     ) AS RES
-    ON M.mid = RES.movieId
-    ORDER BY stars, title;
+        WHERE RES.stars >= minimal AND RES.stars <= maximal;
 
--- B) Узнать рейтинг фильма
-CREATE OR REPLACE FUNCTION get_rating_of_film(filmName TEXT) 
-    RETURNS SETOF filmsStarsView
-    LANGUAGE SQL
-AS $$
-    SELECT * FROM filmsStarsView WHERE title = filmName;
 $$;
-
-SELECT * FROM get_rating_of_film('E.T.');
-
--- C) Фильмы с рейтингом в диапазоне от, до
-CREATE OR REPLACE FUNCTION get_films_by_rating(NUMERIC, NUMERIC)
-    RETURNS SETOF filmsStarsView
-    LANGUAGE SQL
-AS $$
-    SELECT * FROM filmsStarsView WHERE stars >= $1 AND stars <=  $2;
-$$;
-
-SELECT * FROM get_films_by_rating(2.5, 3.0);
-
--- D) Поиск оценок фильма по 
-
--- Треггер INSERT
+SELECT * FROM get_films_by_avg_stars_between(4, 5)
