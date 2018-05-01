@@ -142,3 +142,21 @@ DELETE FROM movie
 WHERE mid = 101;
 SELECT * from movie;
 SELECT * FROM rating;
+
+---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION abort_any_command()
+    RETURNS event_trigger
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    RAISE EXCEPTION 'команда % отключена', tg_tag;
+
+END;
+$$;
+
+CREATE EVENT TRIGGER abort_ddl ON ddl_command_start
+    EXECUTE PROCEDURE abort_any_command();
+
+ALTER TABLE rating
+ALTER COLUMN abcd SET NOT NULL;
